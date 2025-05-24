@@ -1,25 +1,21 @@
+using NaughtyAttributes;
 using Unity.Collections;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class Planet : MonoBehaviour
 {
+    [Expandable] public PlanetSettings settings;
     public PlanetMeshGenerator meshGenerator;
-    [Range(1, 103)] public int resolution;
-    public Color baseColor;
     public PlanetMeshData meshData;
+    [HideInInspector] public Material material;
 
-    public void Start()
+    private void Start()
     {
         meshGenerator = GetComponent<PlanetMeshGenerator>();
         
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-        Material material = new Material(Shader.Find("Unlit/PlanetShader"));
-        string colorId = "_Color";
-        material.SetColor(colorId, baseColor);
-        meshRenderer.material = material;
-        
         meshData = new PlanetMeshData(Allocator.Persistent);
-        PlanetMeshData frontMeshData = meshGenerator.CreateCubicFace(resolution, 5, Vector3.zero);
+        PlanetMeshData frontMeshData = meshGenerator.CreateCubicFace(settings.resolution, 5, Vector3.zero);
 
         meshData.ClonePlanetMeshData(frontMeshData, Allocator.Persistent);
         
@@ -28,6 +24,28 @@ public class Planet : MonoBehaviour
         
         frontMeshData.Dispose();
         
+        string shaderId = "Shader Graphs/PlanetShader";
+        material = new Material(Shader.Find(shaderId));
+        
+        UpdateMaterial();
+        UpdateMesh();
+    }
+
+    [Button("Update Material")]
+    public void UpdateMaterial()
+    {
+        string colorId = "_BaseColor";
+        material.SetColor(colorId, settings.baseColor);
+
+        string shadeValueId = "_ShadeValue";
+        material.SetFloat(shadeValueId, settings.shadowStrength);
+        
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer.material = material;
+    }
+    
+    public void UpdateMesh()
+    {
         Mesh mesh = new Mesh();
         MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
         meshFilter.mesh = mesh;
@@ -37,5 +55,20 @@ public class Planet : MonoBehaviour
         
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+    }
+
+    [Button("Generate Mesh")]
+    public void GenerateMeshData()
+    {
+        if (meshData.IsCreated()) meshData.Dispose();
+        
+        meshData = new PlanetMeshData(Allocator.Persistent);
+        PlanetMeshData frontMeshData = meshGenerator.CreateCubicFace(settings.resolution, 5, Vector3.zero);
+
+        meshData.ClonePlanetMeshData(frontMeshData, Allocator.Persistent);
+        
+        frontMeshData.Dispose();
+        
+        UpdateMesh();
     }
 }

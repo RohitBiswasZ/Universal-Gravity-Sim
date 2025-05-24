@@ -33,4 +33,10 @@ public struct PlanetMeshData : IDisposable
         if (vertex.IsCreated) vertex.Dispose();
         if (triangles.IsCreated) triangles.Dispose();
     }
+
+    public bool IsCreated()
+    {
+        if (vertex.IsCreated || triangles.IsCreated) return true;
+        return false;
+    }
 }
