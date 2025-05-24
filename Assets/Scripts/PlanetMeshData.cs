@@ -24,8 +24,8 @@ public struct PlanetMeshData : IDisposable
 
     public void AddPlanetMeshData(PlanetMeshData meshData)
     {
+        for (int i = 0; i < meshData.triangles.Length; i++) triangles.Add(meshData.triangles[i] + vertex.Length);
         vertex.AddRange(meshData.vertex.AsArray());
-        triangles.AddRange(meshData.triangles.AsArray());
     }
 
     public void Dispose()
